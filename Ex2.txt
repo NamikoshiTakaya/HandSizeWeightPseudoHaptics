@@ -1,0 +1,134 @@
+library(ggplot2)
+# データの準備
+handsize <- c(0.4, 0.6, 0.8, 1.25, 1.5, 1.75)
+# HeavyGain0.8 のデータ (平均データ)
+response_rate_0.8 <- c(8.333333333,0,25,100,100,100)
+# HeavyGain1.2 のデータ (平均データ)
+response_rate_1.2 <- c(0,0,0,75,91.66666667,100)
+# 参加者A_0.8 のデータ
+response_rate_A_0.8 <- c(83.33333333,66.66666667,100,100,100,91.66666667)
+# 参加者A_1.2 のデータ
+response_rate_A_1.2 <- c(0,0,0,0,8.333333333,25)
+# 参加者B_0.8 のデータ
+response_rate_B_0.8 <- c(91.66666667,91.66666667,100,91.66666667,100,91.66666667)
+# 参加者B_1.2 のデータ
+response_rate_B_1.2 <- c(0,0,0,0,8.333333333,0)
+# プロビット回帰モデルをフィット
+fit_0.8 <- glm(response_rate_0.8 / 100 ~ handsize, family = binomial(link = "probit"))
+fit_1.2 <- glm(response_rate_1.2 / 100 ~ handsize, family = binomial(link = "probit"))
+fit_A_0.8 <- glm(response_rate_A_0.8 / 100 ~ handsize, family = binomial(link = "probit"))
+fit_A_1.2 <- glm(response_rate_A_1.2 / 100 ~ handsize, family = binomial(link = "probit"))
+fit_B_0.8 <- glm(response_rate_B_0.8 / 100 ~ handsize, family = binomial(link = "probit"))
+fit_B_1.2 <- glm(response_rate_B_1.2 / 100 ~ handsize, family = binomial(link = "probit"))
+# 1. 平均データ (HeavyGain0.8, HeavyGain1.2)
+avg_data <- data.frame(
+ handsize = handsize,
+ response_rate = c(response_rate_0.8, response_rate_1.2),
+ condition = rep(c("Average HeavyGain0.8", "Average HeavyGain1.2"), each = length(handsize))
+)
+p1 <- ggplot(avg_data, aes(x = handsize, y = response_rate, color = condition, shape = condition)) +
+ geom_point(size = 7) +
+ geom_hline(yintercept = 0, color = "black", size = 1.2) + # 横軸を黒く
+ geom_vline(xintercept = 0, color = "black", size = 1.2) + # 縦軸を黒く
+ stat_function(fun = function(x) pnorm(coef(fit_0.8)[1] + coef(fit_0.8)[2] * x) * 100, aes(color = "Average HeavyGain0.8"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_1.2)[1] + coef(fit_1.2)[2] * x) * 100, aes(color = "Average HeavyGain1.2"), size = 2) +
+ scale_y_continuous(limits = c(0, 100)) +
+ scale_x_continuous(limits = c(0, 2), breaks = seq(0, 2, by = 0.2), labels = seq(0, 2, by = 0.2)) + # X軸を0から4、目盛りを0.2刻みに設定
+ labs(x = "ハンドサイズ", y = "比較対象を重いと答えた割合[%]") +
+ theme_minimal() +
+ theme(
+ plot.title = element_blank(),
+ axis.title.x = element_text(size = 32), # X軸タイトルのフォントサイズ
+ axis.title.y = element_text(size = 32), # Y軸タイトルのフォントサイズ
+ axis.text.x = element_text(size = 20), # X軸目盛りのフォントサイズ
+ axis.text.y = element_text(size = 20), # Y軸目盛りのフォントサイズ
+ panel.grid.major.x = element_line(size = 0.5), # X軸補助線の表示を有効化
+ panel.grid.minor.x = element_line(size = 0.25) # X軸補助線の表示を有効化
+ )
+# 2. 参加者Aのデータ (A_0.8, A_1.2)
+a_data <- data.frame(
+ handsize = handsize,
+ response_rate = c(response_rate_A_0.8, response_rate_A_1.2),
+ condition = rep(c("ParticipantA_0.8", "ParticipantA_1.2"), each = length(handsize))
+)
+p2 <- ggplot(a_data, aes(x = handsize, y = response_rate, color = condition, shape = condition)) +
+ geom_point(size = 7) +
+ geom_hline(yintercept = 0, color = "black", size = 1.2) + # 横軸を黒く
+ geom_vline(xintercept = 0, color = "black", size = 1.2) + # 縦軸を黒く
+ stat_function(fun = function(x) pnorm(coef(fit_A_0.8)[1] + coef(fit_A_0.8)[2] * x) * 100, aes(color = "ParticipantA_0.8"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_A_1.2)[1] + coef(fit_A_1.2)[2] * x) * 100, aes(color = "ParticipantA_1.2"), size = 2) +
+ scale_y_continuous(limits = c(0, 100)) +
+ scale_x_continuous(limits = c(0, 2), breaks = seq(0, 2, by = 0.2), labels = seq(0, 2, by = 0.2)) + # X軸を0から4、目盛りを0.2刻みに設定
+ labs(x = "ハンドサイズ", y = "比較対象を重いと答えた割合[%]") +
+ theme_minimal() +
+ theme(
+ plot.title = element_blank(),
+ axis.title.x = element_text(size = 32), # X軸タイトルのフォントサイズ
+ axis.title.y = element_text(size = 32), # Y軸タイトルのフォントサイズ
+ axis.text.x = element_text(size = 20), # X軸目盛りのフォントサイズ
+ axis.text.y = element_text(size = 20), # Y軸目盛りのフォントサイズ
+ panel.grid.major.x = element_line(size = 0.5), # X軸補助線の表示を有効化
+ panel.grid.minor.x = element_line(size = 0.25) # X軸補助線の表示を有効化
+ )
+# 3. 参加者Bのデータ (B_0.8, B_1.2)
+b_data <- data.frame(
+ handsize = handsize,
+ response_rate = c(response_rate_B_0.8, response_rate_B_1.2),
+ condition = rep(c("ParticipantB_0.8", "ParticipantB_1.2"), each = length(handsize))
+)
+p3 <- ggplot(b_data, aes(x = handsize, y = response_rate, color = condition, shape = condition)) +
+ geom_point(size = 7) +
+ geom_hline(yintercept = 0, color = "black", size = 1.2) + # 横軸を黒く
+ geom_vline(xintercept = 0, color = "black", size = 1.2) + # 縦軸を黒く
+ stat_function(fun = function(x) pnorm(coef(fit_B_0.8)[1] + coef(fit_B_0.8)[2] * x) * 100, aes(color = "ParticipantB_0.8"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_B_1.2)[1] + coef(fit_B_1.2)[2] * x) * 100, aes(color = "ParticipantB_1.2"), size = 2) +
+ scale_y_continuous(limits = c(0, 100)) +
+ scale_x_continuous(limits = c(0, 2), breaks = seq(0, 2, by = 0.2), labels = seq(0, 2, by = 0.2)) + # X軸を0から4、目盛りを0.2刻みに設定
+ labs(x = "ハンドサイズ", y = "比較対象を重いと答えた割合[%]") +
+ theme_minimal() +
+ theme(
+ plot.title = element_blank(),
+ axis.title.x = element_text(size = 32), # X軸タイトルのフォントサイズ
+ axis.title.y = element_text(size = 32), # Y軸タイトルのフォントサイズ
+ axis.text.x = element_text(size = 20), # X軸目盛りのフォントサイズ
+ axis.text.y = element_text(size = 20), # Y軸目盛りのフォントサイズ
+ panel.grid.major.x = element_line(size = 0.5), # X軸補助線の表示を有効化
+ panel.grid.minor.x = element_line(size = 0.25) # X軸補助線の表示を有効化
+ )
+# 4. まとめたデータ (平均、参加者A、参加者B)
+all_data <- data.frame(
+ handsize = handsize,
+ response_rate = c(response_rate_0.8, response_rate_1.2, response_rate_A_0.8, response_rate_A_1.2, response_rate_B_0.8, response_rate_B_1.2),
+ condition = rep(c("平均_CD比0.8", "平均_CD比1.2", "参加者A_CD比0.8", "参加者A_CD比1.2", "参加者B_CD比0.8", "参加者B_CD比1.2"), each = length(handsize))
+)
+p4 <- ggplot(all_data, aes(x = handsize, y = response_rate, color = condition, shape = condition)) +
+ geom_point(size = 7) +
+ geom_hline(yintercept = 0, color = "black", size = 1.2) + # 横軸を黒く
+ geom_vline(xintercept = 0, color = "black", size = 1.2) + # 縦軸を黒く
+ # 近似線の追加 (各データに対して)
+ stat_function(fun = function(x) pnorm(coef(fit_0.8)[1] + coef(fit_0.8)[2] * x) * 100, aes(color = "平均_CD比0.8"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_1.2)[1] + coef(fit_1.2)[2] * x) * 100, aes(color = "平均_CD比1.2"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_A_0.8)[1] + coef(fit_A_0.8)[2] * x) * 100, aes(color = "参加者A_CD比0.8"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_A_1.2)[1] + coef(fit_A_1.2)[2] * x) * 100, aes(color = "参加者A_CD比1.2"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_B_0.8)[1] + coef(fit_B_0.8)[2] * x) * 100, aes(color = "参加者B_CD比0.8"), size = 2) +
+ stat_function(fun = function(x) pnorm(coef(fit_B_1.2)[1] + coef(fit_B_1.2)[2] * x) * 100, aes(color = "参加者B_CD比1.2"), size = 2) +
+ scale_y_continuous(limits = c(0, 100)) +
+ scale_x_continuous(limits = c(0, 2), breaks = seq(0, 2, by = 0.2), labels = seq(0, 2, by = 0.2)) + # X軸を0から4、目盛りを0.2刻みに設定
+ labs(x = "ハンドサイズ", y = "比較対象を重いと答えた割合[%]") +
+ theme_minimal() +
+ theme(
+ plot.title = element_blank(),
+ axis.title.x = element_text(size = 32), # X軸タイトルのフォントサイズ
+ axis.title.y = element_text(size = 32), # Y軸タイトルのフォントサイズ
+ axis.text.x = element_text(size = 20), # X軸目盛りのフォントサイズ
+ axis.text.y = element_text(size = 20), # Y軸目盛りのフォントサイズ
+ panel.grid.major.x = element_line(size = 0.5), # X軸補助線の表示を有効化
+ panel.grid.minor.x = element_line(size = 0.25) # X軸補助線の表示を有効化
+ )
+# p4を表示
+print(p4)
+# 各プロットを個別に表示
+print(p1)
+print(p2)
+print(p3)
+print(p4)

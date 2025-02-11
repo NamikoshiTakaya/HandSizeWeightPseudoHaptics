@@ -1,0 +1,19 @@
+z_50 <- qnorm(0.5)
+z_75 <- qnorm(0.75)
+# 各モデルのPSEとJNDを計算
+calculate_PSE_JND <- function(fit) {
+  beta0 <- coef(fit)[1]
+  beta1 <- coef(fit)[2]
+  PSE <- -beta0 / beta1
+  JND <- (z_75 - z_50) / beta1
+  return(list(PSE = PSE, JND = JND))
+}
+# 各モデルの結果を表示
+models <- list(fit_0.8, fit_1.2, fit_A_0.8, fit_A_1.2, fit_B_0.8, fit_B_1.2)
+names(models) <- c("Average HeavyGain0.8", "Average HeavyGain1.2", "ParticipantA_0.8", "ParticipantA_1.2", "ParticipantB_0.8", "ParticipantB_1.2")
+for (name in names(models)) {
+  result <- calculate_PSE_JND(models[[name]])
+  cat(name, "\n")
+  cat("  PSE:", result$PSE, "\n")
+  cat("  JND:", result$JND, "\n\n")
+}

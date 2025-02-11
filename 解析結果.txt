@@ -1,0 +1,60 @@
+
+x : 1000  970  930 1080 1030 1030  920 1020 1000 1180  960  990 1060 1030
+y : 1030  970 1110  990  950  950  960  970  970 1190 1070 1010  940 1000
+x2: 1000  970  930 1080 1030 1030  920 1020 1000  960  990 1060 1030
+y2: 1030  970 1110  990  950  950  960  970  970 1070 1010  940 1000
+
+
+
+> summary(x)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    920     975    1010    1014    1030    1180 
+> summary(y)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  940.0   962.5   980.0  1007.9  1025.0  1190.0 
+> summary(x2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+    920     970    1000    1002    1030    1080 
+> summary(y2)
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  940.0   960.0   970.0   993.8  1010.0  1110.0 
+
+t1
+data:  x
+t = 0.81049, df = 13, p-value = 0.4322
+alternative hypothesis: true mean is not equal to 1000
+95 percent confidence interval:
+  976.2071 1052.3643
+sample estimates:
+mean of x 
+ 1014.286
+
+t2
+data:  y
+t = 0.41186, df = 13, p-value = 0.6871
+alternative hypothesis: true mean is not equal to 1000
+95 percent confidence interval:
+  966.6438 1049.0705
+sample estimates:
+mean of x 
+ 1007.857 
+
+tx1
+data:  x2
+t = 0.11701, df = 12, p-value = 0.9088
+alternative hypothesis: true mean is not equal to 1000
+95 percent confidence interval:
+  972.8906 1030.1863
+sample estimates:
+mean of x 
+ 1001.538 
+
+ty1
+data:  y2
+t = -0.44005, df = 12, p-value = 0.6677
+alternative hypothesis: true mean is not equal to 1000
+95 percent confidence interval:
+  963.3769 1024.3154
+sample estimates:
+mean of x 
+ 993.8462 

@@ -1,0 +1,166 @@
+# ①外れ値除去
+# データ
+pattern1_new <- c(1000,970,930,1080,1030,1030,920,1020,1000,1180,960,990,1060,1030)
+pattern2_new <- c(1030,970,1110,990,950,950,960,970,970,1190,1070,1010,940,1000)
+
+# 外れ値検出・除去関数
+detect_and_remove_outliers <- function(data) {
+  Q1 <- quantile(data, 0.25) # 第1四分位数
+  Q3 <- quantile(data, 0.75) # 第3四分位数
+  IQR <- Q3 - Q1            # 四分位範囲
+  lower_bound <- Q1 - 1.5 * IQR # 下限
+  upper_bound <- Q3 + 1.5 * IQR # 上限
+  # 外れ値を検出
+  outliers <- data[data < lower_bound | data > upper_bound]
+  # 外れ値を除去
+  clean_data <- data[data >= lower_bound & data <= upper_bound]
+  list(outliers = outliers, clean_data = clean_data)
+}
+
+# パターン1の外れ値検出と除去
+result_pattern1 <- detect_and_remove_outliers(pattern1_new)
+outliers_pattern1 <- result_pattern1$outliers
+clean_pattern1 <- result_pattern1$clean_data
+
+# パターン2の外れ値検出と除去
+result_pattern2 <- detect_and_remove_outliers(pattern2_new)
+outliers_pattern2 <- result_pattern2$outliers
+clean_pattern2 <- result_pattern2$clean_data
+
+# 結果表示
+cat("Pattern1の外れ値:\n")
+print(outliers_pattern1)
+cat("Pattern1の外れ値除去後:\n")
+print(clean_pattern1)
+
+cat("\nPattern2の外れ値:\n")
+print(outliers_pattern2)
+cat("Pattern2の外れ値除去後:\n")
+print(clean_pattern2)
+
+
+
+
+
+
+
+# ②シャピロウィルク検定
+# 元のデータ（外れ値除去していないデータ）
+pattern1_original <- pattern1_new
+pattern2_original <- pattern2_new
+
+# シャピロウィルク検定（外れ値除去なし）
+shapiro_test_pattern1_original <- shapiro.test(pattern1_original)
+shapiro_test_pattern2_original <- shapiro.test(pattern2_original)
+
+# 結果を表示
+shapiro_test_pattern1_original
+shapiro_test_pattern2_original
+
+# 参考：外れ値除去後の検定
+shapiro_test_pattern1_clean <- shapiro.test(clean_pattern1)
+shapiro_test_pattern2_clean <- shapiro.test(clean_pattern2)
+
+# 結果を表示
+shapiro_test_pattern1_clean
+shapiro_test_pattern2_clean
+
+
+
+
+
+
+# ③p値求めたいとき 
+# データの作成
+pattern1_new <- clean_pattern1
+pattern2_new <- clean_pattern2
+
+# 帰無仮説: 母平均は1000
+mu <- 1000
+
+# t検定の実行（両側検定）
+t_test_result1 <- t.test(pattern1_new, mu = mu, alternative = "two.sided")
+t_test_result2 <- t.test(pattern2_new, mu = mu, alternative = "two.sided")
+
+# 効果量（Cohen's d）の計算
+cohen_d <- function(x, mu) {
+  mean_x <- mean(x)
+  sd_x <- sd(x)
+  d <- abs(mean_x - mu) / sd_x
+  return(d)
+}
+
+cohen_d1 <- cohen_d(pattern1_new, mu)
+cohen_d2 <- cohen_d(pattern2_new, mu)
+
+# 結果の表示
+print(t_test_result1)
+cat("Cohen's d for Pattern1:", cohen_d1, "\n")
+
+print(t_test_result2)
+cat("Cohen's d for Pattern2:", cohen_d2, "\n")
+
+
+
+
+
+
+
+
+
+
+# 解析用Rコード
+# ④必要なパッケージを読み込み
+library(ggplot2)
+
+# 新しいデータの定義（1000で割る前）
+
+# データを1000で割る
+pattern1_new <- pattern1_new / 1000
+pattern2_new <- pattern2_new / 1000
+
+# 最大値と最小値を計算
+min_pattern1 <- min(pattern1_new)
+max_pattern1 <- max(pattern1_new)
+min_pattern2 <- min(pattern2_new)
+max_pattern2 <- max(pattern2_new)
+
+# 平均値を計算
+mean_pattern1 <- mean(pattern1_new)
+mean_pattern2 <- mean(pattern2_new)
+
+# データフレームに変換
+data <- data.frame(
+  value = c(pattern1_new, pattern2_new),
+  group = factor(rep(c("HandSize = 0.50", "HandSize = 1.50"), c(length(pattern1_new), length(pattern2_new))))
+)
+
+# 箱ひげ図を作成（外れ値を含めて表示、ウィスカーを外れ値まで伸ばす）
+p <- ggplot(data, aes(x=group, y=value, fill=group)) +
+  geom_boxplot(outlier.shape = NA, coef = 10) +  # coef = 10によりウィスカーが外れ値まで伸びる
+  labs(x=NULL, y=NULL) +  # X軸とY軸のタイトルを非表示にする
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size=20),
+    axis.text.x = element_blank(),  # X軸のテキストラベルを非表示にする
+    axis.ticks.x = element_line(size = 0.5),  # X軸の目盛りを表示する
+    axis.text.y = element_blank(),  # Y軸の数値ラベルを非表示にする
+    axis.ticks.y = element_line(size = 0.5),  # Y軸の目盛り線を表示する
+    legend.position="none"
+  ) +
+  scale_y_continuous(
+    limits = c(0.85, 1.25),  # Y軸の範囲を0.85から1.25に設定
+    breaks=seq(0.85, 1.25, 0.05),  # Y軸の目盛りを0.05ごとに設定
+    minor_breaks=seq(0.85, 1.25, 0.01)  # Y軸のマイナー目盛りを0.01ごとに設定
+  ) +
+  # 最大値と最小値に赤い線を引く
+  geom_segment(aes(x=0.8, xend=1.2, y=min_pattern1, yend=min_pattern1), color="red", size=2) +
+  geom_segment(aes(x=0.8, xend=1.2, y=max_pattern1, yend=max_pattern1), color="red", size=2) +
+  geom_segment(aes(x=1.8, xend=2.2, y=min_pattern2, yend=min_pattern2), color="red", size=2) +
+  geom_segment(aes(x=1.8, xend=2.2, y=max_pattern2, yend=max_pattern2), color="red", size=2) +
+  # 平均値に青い点をプロット
+  geom_point(data=data.frame(value=c(mean_pattern1, mean_pattern2), group=factor(c("HandSize = 0.50", "HandSize = 1.50"))),
+             aes(x=group, y=value), color="blue", size=8, shape=20)
+
+# プロットを表示
+print(p)
